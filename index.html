@@ -1,657 +1,162 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Servicios de limpieza</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
 <style>
-/* Layout: columna ancha de fotografías (con cabecera y fecha) + columna estrecha de controles fija a la derecha */
 :root{
   --bg:#eef1ee; --panel:#ffffff; --ink:#15201a; --muted:#5b6a60; --line:#d3dcd5;
-  --accent:#1c6b3a; --accent-ink:#ffffff; --hv:#c9e11f; --hv-ink:#1a2200;
-  --tag:#0b0b0b; --tag-ink:#ffffff; --danger:#b3261e; --card:#ffffff;
+  --accent:#1c6b3a; --accent-ink:#ffffff; --hv:#c9e11f; --hv-ink:#1a2200; --card:#ffffff;
   --display:"Barlow Condensed","Arial Narrow",sans-serif; --body:"Barlow",system-ui,sans-serif;
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0f1511; --panel:#18211b; --ink:#e8efe9; --muted:#97a69b; --line:#2b372f;
-    --accent:#5fcf86; --accent-ink:#06210f; --hv:#d4ee2a; --hv-ink:#1a2200;
-    --tag:#050505; --tag-ink:#ffffff; --danger:#ff8a80; --card:#ffffff; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0f1511; --panel:#18211b; --ink:#e8efe9; --muted:#97a69b; --line:#2b372f;
-  --accent:#5fcf86; --accent-ink:#06210f; --hv:#d4ee2a; --hv-ink:#1a2200;
-  --tag:#050505; --tag-ink:#ffffff; --danger:#ff8a80; --card:#ffffff; color-scheme:dark;
+  :root{--bg:#0f1511;--panel:#18211b;--ink:#e8efe9;--muted:#97a69b;--line:#2b372f;--accent:#5fcf86;--accent-ink:#06210f;--hv:#d4ee2a;--hv-ink:#1a2200;color-scheme:dark}
 }
 *{box-sizing:border-box}
-body{
-  background:var(--bg); color:var(--ink); font:15px/1.4 var(--body);
-  padding-block:20px 40px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));
-  padding-right:max(16px,env(safe-area-inset-right,0px));
-}
-body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
-button{font:inherit;color:inherit}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 var(--body);padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
 .app{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
 .main{min-width:0}
 .head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-bottom:14px;margin-bottom:16px;border-bottom:3px solid var(--ink)}
-h1{margin:0;font:700 clamp(30px,5vw,46px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
-.date{display:flex;align-items:baseline;gap:10px;font-family:var(--display);text-transform:uppercase;font-weight:600;white-space:nowrap}
+h1{margin:0;font:700 clamp(30px,5vw,46px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.date{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;font-family:var(--display);text-transform:uppercase;font-weight:600;white-space:nowrap}
 .date #dWeek{font-size:18px;color:var(--muted);letter-spacing:.06em}
 .date #dDay{font-size:46px;line-height:1;font-weight:700;background:var(--hv);color:var(--hv-ink);padding:2px 10px;border-radius:3px;font-variant-numeric:tabular-nums}
 .date #dMonth{font-size:22px;letter-spacing:.03em}
 .cards{display:flex;flex-direction:column;gap:14px}
-.card{position:relative;border:1px solid var(--line);border-radius:6px;background:var(--card);overflow:hidden}
-.card.lifting{opacity:.35}
-.card.drop-before::before,.card.drop-after::after{content:"";position:absolute;left:0;right:0;height:6px;background:var(--hv);z-index:6;box-shadow:0 0 0 1px var(--hv-ink)}
-.card.drop-before::before{top:0}.card.drop-after::after{bottom:0}
+.card{border:1px solid var(--line);border-radius:6px;background:var(--card);overflow:hidden}
 .frame{position:relative;container-type:inline-size;line-height:0}
-.frame img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;pointer-events:none}
-.frame.over{outline:4px solid var(--hv);outline-offset:-4px}
-.grip{position:absolute;top:8px;right:8px;width:34px;height:34px;border:0;border-radius:5px;background:rgba(11,11,11,.72);cursor:grab;touch-action:none;opacity:.85;
-  background-image:radial-gradient(circle,#fff 1.6px,transparent 1.8px);background-size:9px 9px;background-position:center;background-repeat:repeat;background-clip:content-box;padding:8px}
-.grip:hover,.grip:focus-visible{opacity:1;outline:2px solid var(--hv);outline-offset:1px}
-.tag,.gtag{background:var(--c,var(--tag));color:var(--ci,var(--tag-ink));box-shadow:0 0 0 1px rgba(0,0,0,.28);font-weight:700;line-height:1.15;padding:.22em .5em;border-radius:.2em;white-space:nowrap;font-family:var(--body)}
-.tag{position:absolute;transform:translate(-50%,-50%);font-size:calc(var(--s,4.2) * 1cqw);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;z-index:3}
-.tag.lifting{opacity:.3}
-.tag.sel{outline:2px solid var(--hv);outline-offset:3px;z-index:4}
-.tag .rs,.tag .x{display:none;position:absolute;line-height:0}
-.tag.sel .rs,.tag.sel .x{display:block}
-.tag .rs{right:-9px;bottom:-9px;width:16px;height:16px;border-radius:3px;background:var(--hv);border:2px solid var(--tag);cursor:nwse-resize;touch-action:none}
-.tag .x{right:-11px;top:-11px;width:20px;height:20px;border-radius:50%;border:2px solid var(--tag);background:var(--hv);color:var(--hv-ink);font:700 12px/16px var(--body);text-align:center;cursor:pointer;padding:0}
-.gtag{position:fixed;left:0;top:0;pointer-events:none;z-index:1000;transform:translate(-50%,-50%);box-shadow:0 6px 18px rgba(0,0,0,.35);outline:2px solid var(--hv)}
-.gthumb{position:fixed;left:0;top:0;width:170px;pointer-events:none;z-index:1000;transform:translate(-50%,-50%);border:2px solid var(--hv);border-radius:4px;box-shadow:0 8px 20px rgba(0,0,0,.4);opacity:.92;background:#fff}
-.side{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;display:flex;flex-direction:column;gap:12px;min-width:0}
+.frame img{display:block;width:100%;height:auto}
+.tag{position:absolute;transform:translate(-50%,-50%);font-size:calc(var(--s,4.2) * 1cqw);background:var(--c,#0b0b0b);color:var(--ci,#fff);box-shadow:0 0 0 1px rgba(0,0,0,.28);font-weight:700;line-height:1.15;padding:.22em .5em;border-radius:.2em;white-space:nowrap;font-family:var(--body)}
+.side{position:sticky;top:16px;min-width:0}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
 h2{margin:0 0 8px;font:700 15px/1.2 var(--display);letter-spacing:.09em;text-transform:uppercase}
-.btn{display:block;width:100%;padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:transparent;cursor:pointer;font-weight:600;text-align:center}
-.btn:hover{border-color:var(--ink)}
-.btn:focus-visible,.chip:focus-visible,.day:focus-visible,.nav:focus-visible,.mini:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.warn{border-color:var(--danger);color:var(--danger)}
-.btn.small{padding:6px 10px;font-size:13px;margin-top:8px}
-.meta,.note{margin:6px 0 0;font-size:13px;color:var(--muted)}
-.pool{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:210px;overflow-y:auto;padding:2px}
-.chip{background:var(--tag);color:var(--tag-ink);font-weight:700;font-size:13px;line-height:1.1;padding:6px 9px;border-radius:4px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
-.chip.done{background:transparent;color:var(--muted);border:1px dashed var(--muted);padding:5px 8px;font-weight:600}
-.empty{margin:0;font-size:13px;color:var(--muted)}
-.chip b{margin-left:6px;font-size:11px;background:var(--hv);color:var(--hv-ink);border-radius:8px;padding:1px 5px}
-.sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 2px}
-.sw button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
-.sw button.on{outline:2px solid var(--accent);outline-offset:2px}
-.sw input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--line);border-radius:5px;background:none;cursor:pointer}
-.selbox{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-.selbox .nm{margin:0 0 6px;font-weight:700;font-size:14px;overflow-wrap:anywhere}
-.row{display:flex;gap:6px}
-.mini{flex:1;padding:6px 8px;border-radius:5px;border:1px solid var(--line);background:transparent;cursor:pointer;font-weight:700}
-.mini:hover{border-color:var(--ink)}
+.note{margin:8px 0 0;font-size:13px;color:var(--muted)}
 .cal .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .cal .mo{font-weight:700;font-size:14px;text-transform:capitalize}
-.nav{width:30px;height:30px;border:1px solid var(--line);border-radius:5px;background:transparent;cursor:pointer;font-size:16px;line-height:1}
+.nav{width:32px;height:32px;border:1px solid var(--line);border-radius:5px;background:transparent;color:var(--ink);cursor:pointer;font-size:16px;line-height:1}
 .nav:hover{border-color:var(--ink)}
+.nav:focus-visible,.day:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cal .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
 .cal .wd{font-size:11px;font-weight:700;color:var(--muted);padding:2px 0}
-.day{position:relative;aspect-ratio:1;min-height:30px;border:0;border-radius:5px;background:transparent;cursor:pointer;font-size:13px;font-variant-numeric:tabular-nums;padding:0}
-.day:hover:not(:disabled){background:var(--line)}
-.day.blank{visibility:hidden;pointer-events:none}
+.day{position:relative;aspect-ratio:1;min-height:32px;border:0;border-radius:5px;background:transparent;color:var(--ink);font:inherit;font-size:13px;font-variant-numeric:tabular-nums;padding:0;cursor:default}
+.day.blank{visibility:hidden}
 .day.today{box-shadow:inset 0 0 0 1px var(--muted)}
-.day.saved:not(.sel)::after{content:"";position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--accent)}
-.day.sel{background:var(--accent);color:var(--accent-ink);font-weight:700}
-.day.sel.saved::after{content:"";position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--hv)}
-.cal.only .day.saved:not(.sel){background:var(--hv);color:var(--hv-ink);font-weight:700}
-.cal.only .day.saved:not(.sel)::after{display:none}
-.cal.only .day:disabled{color:var(--muted);opacity:.45;cursor:default}
-.state{margin:8px 0 0;font-size:13px}
-.state.dirty{color:var(--danger);font-weight:600}
-#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:6px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:2000;max-width:calc(100vw - 32px)}
-#toast.show{opacity:1;transform:translate(-50%,0)}
-#toast.err{background:var(--danger);color:#fff}
-@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+.day:disabled{color:var(--muted);opacity:.45}
+.day.saved{background:var(--hv);color:var(--hv-ink);font-weight:700;cursor:pointer}
+.day.saved:hover{filter:brightness(.95)}
+.day.sel{background:var(--accent);color:var(--accent-ink)}
+.empty{margin:0;padding:24px 0;color:var(--muted)}
 @media (max-width:820px){
   .app{grid-template-columns:minmax(0,1fr)}
-  .side{position:static;max-height:none;order:-1}
-  .date{flex-wrap:wrap}
+  .side{position:static;order:-1}
 }
 </style>
-
+</head>
+<body>
 <div class="app">
   <main class="main">
     <header class="head">
       <h1>Servicios de limpieza</h1>
-      <div class="date" id="date" aria-live="polite"><span id="dWeek"></span><strong id="dDay"></strong><span id="dMonth"></span></div>
+      <div class="date" id="date"><span id="dWeek"></span><strong id="dDay"></strong><span id="dMonth"></span></div>
     </header>
     <div id="cards" class="cards"></div>
   </main>
-
-  <aside class="side" aria-label="Controles">
+  <aside class="side" aria-label="Calendario">
     <section class="panel">
-      <h2>Personal</h2>
-      <button id="importBtn" class="btn primary" type="button">Importar .txt con nombres</button>
-      <input id="file" type="file" accept=".txt,text/plain" hidden>
-      <p class="meta" id="poolCount"></p>
-      <div id="pool" class="pool"></div>
-      <div id="selBox" class="selbox" hidden>
-        <p class="nm" id="selName"></p>
-        <div class="row">
-          <button id="smaller" class="mini" type="button" aria-label="Reducir nombre">A−</button>
-          <button id="bigger" class="mini" type="button" aria-label="Ampliar nombre">A+</button>
-          <button id="removeTag" class="mini" type="button">Quitar</button>
-        </div>
-        <p class="note">Color de fondo</p>
-        <div class="sw" id="sw"></div>
-        <button id="allColor" class="btn small" type="button">Aplicar este color a todos los nombres</button>
-        <p class="note">También puedes cambiar el tamaño arrastrando el cuadrado de la esquina. Para ponerlo en otra foto, arrastra de nuevo el nombre de la lista.</p>
-      </div>
-      <button id="clearBtn" class="btn small" type="button">Quitar nombres de las fotos</button>
-    </section>
-
-    <section class="panel">
-      <h2>Fecha de la parte superior</h2>
-      <div id="calA" class="cal"></div>
-    </section>
-
-    <section class="panel">
-      <h2>Guardar</h2>
-      <button id="saveBtn" class="btn primary" type="button">Guardar configuración</button>
-      <p class="state" id="saveMsg"></p>
-      <button id="delBtn" class="btn small warn" type="button" hidden>Borrar esta fecha guardada</button>
-    </section>
-
-    <section class="panel">
-      <h2>Fechas guardadas</h2>
-      <div id="calB" class="cal only"></div>
-      <p class="note" id="storeNote"></p>
-    </section>
-
-    <section class="panel" id="exportPanel" hidden>
-      <h2>Exportar para GitHub</h2>
-      <button id="exportBtn" class="btn" type="button">Descargar zip de la página</button>
-      <p class="note">Solo lectura: calendario con todas las fechas guardadas y sus fotos. No incluye los cambios sin guardar.</p>
+      <h2>Fechas</h2>
+      <div id="cal" class="cal"></div>
+      <p class="note" id="upd"></p>
     </section>
   </aside>
 </div>
-<div id="toast" role="status" aria-live="polite"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-(()=>{
+var D={"generated":"2026-11-20T12:01:22.117Z","images":[{"id":"carrito","src":"img/carrito.jpg","w":1000,"h":562,"alt":"Carrito de barrido manual con las zonas Llanes, Posada, Nueva, Repaso y Celorio"},{"id":"baldeo-presion","src":"img/baldeo-presion.jpg","w":1000,"h":450,"alt":"Barredora con equipo de baldeo a presión"},{"id":"barrido-mecanico","src":"img/barrido-mecanico.jpg","w":1000,"h":450,"alt":"Barredora de barrido mecánico"},{"id":"colocacion-contenedores","src":"img/colocacion-contenedores.jpg","w":1000,"h":450,"alt":"Camión de colocación de contenedores"},{"id":"limpieza-pueblos","src":"img/limpieza-pueblos.jpg","w":1000,"h":450,"alt":"Camión de limpieza de pueblos"},{"id":"barrido-motorizado","src":"img/barrido-motorizado.jpg","w":1000,"h":450,"alt":"Vehículo eléctrico de barrido motorizado"},{"id":"limpieza-playas","src":"img/limpieza-playas.jpg","w":1000,"h":450,"alt":"Operario de limpieza de playas junto a contenedores"},{"id":"recorridos","src":"img/recorridos.jpg","w":1000,"h":1143,"alt":"Plano con los recorridos 01 a 06"},{"id":"descanso","src":"img/descanso.jpg","w":1000,"h":450,"alt":"Operario descansando en una hamaca"},{"id":"brigada-rural","src":"img/brigada-rural.jpg","w":1000,"h":450,"alt":"Dos operarios de la brigada rural con desbrozadoras"},{"id":"de-vacaciones","src":"img/de-vacaciones.jpg","w":1000,"h":450,"alt":"Persona de vacaciones en la playa"},{"id":"de-baja","src":"img/de-baja.jpg","w":1000,"h":450,"alt":"Operario de baja en una silla de playa"},{"id":"baldeo-tangencial","src":"img/baldeo-tangencial.jpg","w":1000,"h":563,"alt":"Camión de baldeo tangencial"},{"id":"rb-hosteleria","src":"img/rb-hosteleria.jpg","w":1000,"h":563,"alt":"Camión de recogida de basura de hostelería"},{"id":"limpia-fachadas","src":"img/limpia-fachadas.jpg","w":1000,"h":563,"alt":"Furgoneta de limpia fachadas"},{"id":"barredora-r2500","src":"img/barredora-r2500.jpg","w":1000,"h":563,"alt":"Barredora R 2500 del Ayuntamiento de Llanes con accesorio frontal"}],"configs":{"2026-11-20":{"order":["carrito","recorridos","barrido-mecanico","limpia-fachadas","barrido-motorizado","limpieza-pueblos","barredora-r2500","colocacion-contenedores","baldeo-tangencial","baldeo-presion","brigada-rural","descanso","de-vacaciones","de-baja","rb-hosteleria","limpieza-playas"],"placed":[{"name":"MARCOS","img":"carrito","x":13.49,"y":22.06,"s":2.42,"c":"#c9e11f"},{"name":"VITI","img":"carrito","x":12.21,"y":32.8,"s":2.72,"c":"#c9e11f"},{"name":"EMILIO","img":"carrito","x":13.49,"y":43.06,"s":2.49,"c":"#c9e11f"},{"name":"BAMBA","img":"recorridos","x":9.47,"y":15.11,"s":2.49,"c":"#c9e11f"},{"name":"RUBEN DARIO","img":"carrito","x":80.01,"y":24.66,"s":2.42,"c":"#1c6b3a"},{"name":"BENITO","img":"carrito","x":82.39,"y":64.06,"s":2.42,"c":"#1c6b3a"},{"name":"MARCOS","img":"recorridos","x":35.73,"y":23.35,"s":3.59,"c":"#c9e11f"},{"name":"GABRIEL","img":"recorridos","x":56.86,"y":54.65,"s":3.71,"c":"#c9e11f"},{"name":"VITI","img":"recorridos","x":88.52,"y":54.73,"s":4.8,"c":"#c9e11f"},{"name":"JESUS","img":"recorridos","x":8.83,"y":10.38,"s":2.52,"c":"#1565c0"},{"name":"JESUS","img":"carrito","x":83.67,"y":89.46,"s":2.52,"c":"#1565c0"},{"name":"JESUS","img":"barrido-motorizado","x":83.49,"y":31.67,"s":4.31,"c":"#1565c0"},{"name":"GERARDO","img":"limpieza-pueblos","x":83.58,"y":30.38,"s":4.31,"c":"#1565c0"},{"name":"JUAN","img":"colocacion-contenedores","x":13.31,"y":13.46,"s":4.2,"c":"#ef6c00"},{"name":"IBRAHIMA","img":"colocacion-contenedores","x":55.49,"y":14.07,"s":4.2,"c":"#ef6c00"},{"name":"KAERE","img":"colocacion-contenedores","x":32.25,"y":13.06,"s":4.2,"c":"#ef6c00"},{"name":"ARTURO","img":"brigada-rural","x":24.57,"y":35.72,"s":4.2,"c":"#f01800"},{"name":"KIKON","img":"brigada-rural","x":24.75,"y":56.66,"s":4.2,"c":"#f01800"},{"name":"CIPRIAN","img":"de-vacaciones","x":22,"y":37,"s":4.2,"c":"#c9e11f"},{"name":"JAVIER T.J.","img":"de-vacaciones","x":22.83,"y":59.78,"s":4.2,"c":"#c62828"},{"name":"JAVIER M.G.","img":"de-baja","x":24.02,"y":41.41,"s":4.2,"c":"#c9e11f"},{"name":"BAMBA","img":"carrito","x":71.96,"y":89.78,"s":2.34,"c":"#c9e11f"},{"name":"LUIS FRANCISCO","img":"descanso","x":16.15,"y":45.61,"s":2.92,"c":"#c9e11f"},{"name":"JAGOBA","img":"descanso","x":19.44,"y":64.93,"s":4.21,"c":"#1565c0"},{"name":"LUCIANO","img":"descanso","x":21.18,"y":84.45,"s":4.19,"c":"#e01fd0"},{"name":"EMILIO","img":"recorridos","x":61.71,"y":28.87,"s":3.85,"c":"#c9e11f"},{"name":"GABRIEL","img":"carrito","x":13.77,"y":54.13,"s":2.34,"c":"#c9e11f"},{"name":"FELIX","img":"carrito","x":16.79,"y":82.46,"s":3.31,"c":"#c9e11f"}]},"2026-11-21":{"order":["carrito","recorridos","barrido-mecanico","limpia-fachadas","barrido-motorizado","limpieza-pueblos","barredora-r2500","colocacion-contenedores","baldeo-tangencial","baldeo-presion","brigada-rural","descanso","de-vacaciones","de-baja","rb-hosteleria","limpieza-playas"],"placed":[{"name":"MARCOS","img":"carrito","x":13.49,"y":22.06,"s":2.42,"c":"#c9e11f"},{"name":"VITI","img":"carrito","x":12.21,"y":32.8,"s":2.72,"c":"#c9e11f"},{"name":"MARCOS","img":"recorridos","x":35.73,"y":23.35,"s":3.59,"c":"#c9e11f"},{"name":"GABRIEL","img":"recorridos","x":56.86,"y":54.65,"s":3.71,"c":"#c9e11f"},{"name":"VITI","img":"recorridos","x":88.52,"y":54.73,"s":4.8,"c":"#c9e11f"},{"name":"JESUS","img":"recorridos","x":46.89,"y":83.31,"s":2.52,"c":"#1565c0"},{"name":"JESUS","img":"barrido-motorizado","x":83.49,"y":31.67,"s":4.31,"c":"#1565c0"},{"name":"GERARDO","img":"limpieza-pueblos","x":83.58,"y":30.38,"s":4.31,"c":"#1565c0"},{"name":"JUAN","img":"colocacion-contenedores","x":13.31,"y":13.46,"s":4.2,"c":"#ef6c00"},{"name":"IBRAHIMA","img":"colocacion-contenedores","x":55.49,"y":14.07,"s":4.2,"c":"#ef6c00"},{"name":"KAERE","img":"colocacion-contenedores","x":32.25,"y":13.06,"s":4.2,"c":"#ef6c00"},{"name":"CIPRIAN","img":"de-vacaciones","x":22,"y":37,"s":4.2,"c":"#c9e11f"},{"name":"JAVIER T.J.","img":"de-vacaciones","x":22.83,"y":59.78,"s":4.2,"c":"#c62828"},{"name":"JAVIER M.G.","img":"de-baja","x":24.02,"y":41.41,"s":4.2,"c":"#c9e11f"},{"name":"JAGOBA","img":"descanso","x":19.44,"y":64.93,"s":4.21,"c":"#1565c0"},{"name":"GABRIEL","img":"carrito","x":13.77,"y":54.13,"s":2.34,"c":"#c9e11f"},{"name":"FELIX","img":"descanso","x":16.15,"y":35.24,"s":3.31,"c":"#c9e11f"},{"name":"BENITO","img":"descanso","x":17.25,"y":48.87,"s":3.31,"c":"#1c6b3a"},{"name":"LUIS FRANCISCO","img":"carrito","x":19.35,"y":83.11,"s":3.31,"c":"#c9e11f"},{"name":"JESUS","img":"recorridos","x":83.49,"y":83.63,"s":2.75,"c":"#1565c0"},{"name":"JESUS","img":"recorridos","x":59.97,"y":71.62,"s":2.75,"c":"#1565c0"},{"name":"LUCIANO","img":"barrido-mecanico","x":79.09,"y":41.46,"s":4.28,"c":"#c1159c"},{"name":"ARTURO","img":"descanso","x":83.67,"y":32.8,"s":4.28,"c":"#c62828"},{"name":"KIKON","img":"descanso","x":85.86,"y":54.56,"s":4.28,"c":"#c62828"},{"name":"EMILIO","img":"descanso","x":16.97,"y":79.77,"s":3.09,"c":"#c9e11f"},{"name":"BAMBA","img":"carrito","x":13.77,"y":43.87,"s":2.53,"c":"#c9e11f"},{"name":"BAMBA","img":"recorridos","x":62.9,"y":29.44,"s":2.88,"c":"#c9e11f"}]},"2026-11-22":{"order":["carrito","recorridos","barrido-mecanico","limpia-fachadas","barrido-motorizado","limpieza-pueblos","barredora-r2500","colocacion-contenedores","baldeo-tangencial","baldeo-presion","brigada-rural","descanso","de-vacaciones","de-baja","rb-hosteleria","limpieza-playas"],"placed":[{"name":"MARCOS","img":"carrito","x":13.49,"y":22.06,"s":2.42,"c":"#c9e11f"},{"name":"VITI","img":"carrito","x":12.21,"y":32.8,"s":2.72,"c":"#c9e11f"},{"name":"MARCOS","img":"recorridos","x":35.73,"y":23.35,"s":3.59,"c":"#c9e11f"},{"name":"GABRIEL","img":"recorridos","x":56.86,"y":54.65,"s":3.71,"c":"#c9e11f"},{"name":"VITI","img":"recorridos","x":88.52,"y":54.73,"s":4.8,"c":"#c9e11f"},{"name":"JUAN","img":"colocacion-contenedores","x":13.31,"y":13.46,"s":4.2,"c":"#ef6c00"},{"name":"IBRAHIMA","img":"colocacion-contenedores","x":55.49,"y":14.07,"s":4.2,"c":"#ef6c00"},{"name":"KAERE","img":"colocacion-contenedores","x":32.25,"y":13.06,"s":4.2,"c":"#ef6c00"},{"name":"CIPRIAN","img":"de-vacaciones","x":22,"y":37,"s":4.2,"c":"#c9e11f"},{"name":"JAVIER T.J.","img":"de-vacaciones","x":22.83,"y":59.78,"s":4.2,"c":"#c62828"},{"name":"JAVIER M.G.","img":"de-baja","x":24.02,"y":41.41,"s":4.2,"c":"#c9e11f"},{"name":"GABRIEL","img":"carrito","x":13.77,"y":54.13,"s":2.34,"c":"#c9e11f"},{"name":"FELIX","img":"descanso","x":16.15,"y":35.24,"s":3.31,"c":"#c9e11f"},{"name":"BENITO","img":"descanso","x":17.25,"y":48.87,"s":3.31,"c":"#1c6b3a"},{"name":"LUIS FRANCISCO","img":"carrito","x":19.35,"y":83.11,"s":3.31,"c":"#c9e11f"},{"name":"LUCIANO","img":"barrido-mecanico","x":79.09,"y":41.46,"s":4.28,"c":"#c1159c"},{"name":"ARTURO","img":"descanso","x":83.67,"y":32.8,"s":4.28,"c":"#c62828"},{"name":"KIKON","img":"descanso","x":85.86,"y":54.56,"s":4.28,"c":"#c62828"},{"name":"JESUS","img":"descanso","x":18.89,"y":65.33,"s":3.48,"c":"#1565c0"},{"name":"GERARDO","img":"descanso","x":18.53,"y":79.77,"s":3.36,"c":"#1565c0"},{"name":"RUBEN DARIO","img":"descanso","x":81.38,"y":75.09,"s":3.48,"c":"#1c6b3a"},{"name":"EMILIO","img":"recorridos","x":62.99,"y":28.87,"s":3.48,"c":"#c9e11f"},{"name":"EMILIO","img":"carrito","x":14.14,"y":43.39,"s":2.8,"c":"#c9e11f"},{"name":"BAMBA","img":"descanso","x":74.61,"y":89.33,"s":3.15,"c":"#c9e11f"},{"name":"JAGOBA","img":"limpia-fachadas","x":85.22,"y":22.36,"s":4.6,"c":"#1565c0"}]}}};
+(function(){
 "use strict";
-const $=s=>document.querySelector(s);
-const IMAGES=[
- {id:'carrito',w:1000,h:562,label:'Barrido manual',alt:'Carrito de barrido manual con las zonas Llanes, Posada, Nueva, Repaso y Celorio'},
- {id:'baldeo-presion',w:1000,h:450,label:'Baldeo a presión',alt:'Barredora con equipo de baldeo a presión'},
- {id:'barrido-mecanico',w:1000,h:450,label:'Barrido mecánico',alt:'Barredora de barrido mecánico'},
- {id:'colocacion-contenedores',w:1000,h:450,label:'Colocación de contenedores',alt:'Camión de colocación de contenedores'},
- {id:'limpieza-pueblos',w:1000,h:450,label:'Limpieza de pueblos',alt:'Camión de limpieza de pueblos'},
- {id:'barrido-motorizado',w:1000,h:450,label:'Barrido motorizado',alt:'Vehículo eléctrico de barrido motorizado'},
- {id:'limpieza-playas',w:1000,h:450,label:'Limpieza de playas',alt:'Operario de limpieza de playas junto a contenedores'},
- {id:'recorridos',w:1000,h:1143,label:'Recorridos',alt:'Plano con los recorridos 01 a 06'},
- {id:'descanso',w:1000,h:450,label:'Descanso',alt:'Operario descansando en una hamaca'},
- {id:'brigada-rural',w:1000,h:450,label:'Brigada rural',alt:'Dos operarios de la brigada rural con desbrozadoras'},
- {id:'de-vacaciones',w:1000,h:450,label:'De vacaciones',alt:'Persona de vacaciones en la playa'},
- {id:'de-baja',w:1000,h:450,label:'De baja',alt:'Operario de baja en una silla de playa'},
- {id:'baldeo-tangencial',w:1000,h:563,label:'Baldeo tangencial',alt:'Camión de baldeo tangencial'},
- {id:'rb-hosteleria',w:1000,h:563,label:'R.B. Hostelería',alt:'Camión de recogida de basura de hostelería'},
- {id:'limpia-fachadas',w:1000,h:563,label:'Limpia fachadas',alt:'Furgoneta de limpia fachadas'},
- {id:'barredora-r2500',w:1000,h:563,label:'Barredora R 2500',alt:'Barredora R 2500 del Ayuntamiento de Llanes con accesorio frontal'}
-].map(i=>({...i,src:'img/'+i.id+'.jpg'}));
-const byId=Object.fromEntries(IMAGES.map(i=>[i.id,i]));
+var IM={};D.images.forEach(function(i){IM[i.id]=i});
+var saved=D.configs||{};
+var dates=Object.keys(saved).sort();
+function pad(n){return String(n).padStart(2,"0")}
+function isoOf(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function parse(s){var p=s.split("-").map(Number);return new Date(p[0],p[1]-1,p[2],12)}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function ink(c){var n=parseInt(c.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;return (0.299*r+0.587*g+0.114*b)>150?"#0b0b0b":"#ffffff"}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
 
-const pad=n=>String(n).padStart(2,'0');
-const isoOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d,12)};
-const short=s=>{const [y,m,d]=s.split('-');return d+'/'+m+'/'+y};
-const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
-const uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3);
-const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const r2=v=>Math.round(v*100)/100;
-const DEFAULT_SIZE=4.2;
-let lastSize=DEFAULT_SIZE;
-const DEFAULT_COLOR='#0b0b0b';
-let lastColor=DEFAULT_COLOR;
-const okHex=v=>/^#[0-9a-f]{6}$/i.test(v||'');
-function ink(c){const n=parseInt(c.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;return (0.299*r+0.587*g+0.114*b)>150?'#0b0b0b':'#ffffff'}
-function paint(el,c){el.style.setProperty('--c',c);el.style.setProperty('--ci',ink(c))}
+function initial(){
+  var h=(location.hash||"").slice(1);
+  if(saved[h])return h;
+  var t=isoOf(new Date());
+  if(saved[t])return t;
+  var past=dates.filter(function(d){return d<=t});
+  if(past.length)return past[past.length-1];
+  return dates[0]||null;
+}
+var cur=initial();
+var view=parse(cur||isoOf(new Date()));view.setDate(1);
 
-function h(tag,attrs,...kids){
-  const el=document.createElement(tag);
-  for(const k in (attrs||{})) el.setAttribute(k,attrs[k]);
-  kids.forEach(k=>el.append(k));
-  return el;
-}
-
-/* ---------- estado ---------- */
-function normalize(src){
-  const ids=new Set(IMAGES.map(i=>i.id));
-  const order=(Array.isArray(src.order)?src.order:[]).filter((id,i,a)=>ids.has(id)&&a.indexOf(id)===i);
-  IMAGES.forEach(i=>{if(!order.includes(i.id))order.push(i.id)});
-  const names=(Array.isArray(src.names)?src.names:[]).filter(n=>n&&typeof n.name==='string').map(n=>({id:String(n.id||uid()),name:n.name}));
-  const placed=(Array.isArray(src.placed)?src.placed:[]).filter(p=>p&&ids.has(p.img)&&typeof p.name==='string')
-    .map(p=>({id:String(p.id||uid()),nameId:p.nameId==null?null:String(p.nameId),name:p.name,img:p.img,x:r2(+p.x||50),y:r2(+p.y||50),s:r2(+p.s||DEFAULT_SIZE),c:okHex(p.c)?p.c.toLowerCase():DEFAULT_COLOR}));
-  const date=/^\d{4}-\d{2}-\d{2}$/.test(src.date||'')?src.date:isoOf(new Date());
-  return {date,order,names,placed};
-}
-let state=normalize({});
-let selected=null;
-try{const d=JSON.parse(localStorage.getItem('sl-draft')||'null'); if(d) state=normalize(d)}catch(e){}
-const saved={};
-let db=null, pending=null;
-
-const core=c=>JSON.stringify([c.order,c.names.map(n=>[n.id,n.name]),c.placed.map(p=>[p.id,p.nameId,p.name,p.img,r2(p.x),r2(p.y),r2(p.s),p.c])]);
-function dirty(){
-  const s=saved[state.date];
-  if(s){return core(normalize(s))!==core(state)}
-  return state.names.length>0||state.placed.length>0||core(state)!==core(normalize({}));
-}
-function toConfig(){
-  return {date:state.date,order:[...state.order],names:state.names.map(n=>({id:n.id,name:n.name})),
-    placed:state.placed.map(p=>({id:p.id,nameId:p.nameId,name:p.name,img:p.img,x:r2(p.x),y:r2(p.y),s:r2(p.s),c:p.c})),updated:Date.now()};
-}
-let draftT=0;
-function saveDraft(){clearTimeout(draftT);draftT=setTimeout(()=>{try{localStorage.setItem('sl-draft',JSON.stringify(state))}catch(e){}},250)}
-function change(){pending=null;saveDraft();renderSaveBar();renderPoolState()}
-
-/* ---------- arrastre genérico ---------- */
-function drag(e,o){
-  if(e.button!==undefined&&e.button!==0)return;
-  e.preventDefault();
-  const sx=e.clientX,sy=e.clientY;let px=sx,py=sy,started=false,ghost=null,raf=0;
-  const place=()=>{if(ghost){ghost.style.left=px+'px';ghost.style.top=py+'px'}};
-  const loop=()=>{
-    if(!started)return;
-    if(py<70)scrollBy(0,-Math.min(20,(70-py)/2.5));
-    else if(py>innerHeight-70)scrollBy(0,Math.min(20,(py-(innerHeight-70))/2.5));
-    o.onMove&&o.onMove(px,py);
-    raf=requestAnimationFrame(loop);
-  };
-  const move=ev=>{
-    px=ev.clientX;py=ev.clientY;
-    if(!started){
-      if(Math.hypot(px-sx,py-sy)<4)return;
-      started=true;ghost=o.mk();document.body.append(ghost);document.body.classList.add('dragging');
-      o.onStart&&o.onStart();loop();
-    }
-    place();
-  };
-  const end=(ev,cancel)=>{
-    window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',cn);
-    cancelAnimationFrame(raf);
-    const was=started;started=false;
-    if(ghost)ghost.remove();
-    document.body.classList.remove('dragging');
-    document.querySelectorAll('.frame.over').forEach(f=>f.classList.remove('over'));
-    o.onEnd&&o.onEnd();
-    if(!was){if(!cancel)o.onClick&&o.onClick();return}
-    if(!cancel)o.onDrop&&o.onDrop(px,py);
-  };
-  const up=ev=>end(ev,false), cn=ev=>end(ev,true);
-  window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',cn);
-}
-const frameAt=(x,y)=>{const el=document.elementFromPoint(x,y);return el?el.closest('.frame'):null};
-function hoverFrame(x,y){
-  const f=frameAt(x,y);
-  document.querySelectorAll('.frame.over').forEach(o=>{if(o!==f)o.classList.remove('over')});
-  if(f)f.classList.add('over');
-}
-function posIn(f,x,y){
-  const r=f.getBoundingClientRect();
-  return {x:r2(clamp((x-r.left)/r.width*100,1,99)),y:r2(clamp((y-r.top)/r.height*100,1,99))};
-}
-function ghostTag(text,px,c){const g=h('div',{class:'gtag'},text);g.style.fontSize=px+'px';g.style.background=c;g.style.color=ink(c);return g}
-
-/* ---------- fotografías ---------- */
-function tagEl(p){
-  const el=h('div',{class:'tag'+(p.id===selected?' sel':''),'data-id':p.id});
-  el.style.left=p.x+'%';el.style.top=p.y+'%';el.style.setProperty('--s',p.s);paint(el,p.c);
-  const t=h('span',{},p.name);
-  const rs=h('span',{class:'rs',title:'Cambiar tamaño'});
-  const x=h('button',{class:'x',type:'button','aria-label':'Quitar '+p.name,title:'Quitar'},'×');
-  el.append(t,rs,x);
-  x.addEventListener('pointerdown',e=>e.stopPropagation());
-  x.addEventListener('click',e=>{e.stopPropagation();removeTag(p.id)});
-  el.addEventListener('pointerdown',e=>tagDown(e,p,el));
-  return el;
-}
-function renderImages(){
-  const box=$('#cards');box.replaceChildren();
-  state.order.forEach(id=>{
-    const im=byId[id];
-    const card=h('article',{class:'card','data-id':id});
-    const frame=h('div',{class:'frame','data-id':id});
-    const img=h('img',{src:im.src,alt:im.alt,width:im.w,height:im.h,draggable:'false'});
-    frame.append(img);
-    state.placed.filter(p=>p.img===id).forEach(p=>frame.append(tagEl(p)));
-    const grip=h('button',{class:'grip',type:'button','aria-label':'Mover «'+im.label+'». Arrastra o usa las flechas arriba y abajo.',title:'Arrastrar para cambiar el orden'});
-    grip.addEventListener('pointerdown',e=>gripDown(e,id));
-    grip.addEventListener('keydown',e=>{
-      const i=state.order.indexOf(id),j=e.key==='ArrowUp'?i-1:e.key==='ArrowDown'?i+1:-1;
-      if(j<0||j>=state.order.length)return;
-      e.preventDefault();state.order.splice(i,1);state.order.splice(j,0,id);change();renderImages();
-      const g=document.querySelector('.card[data-id="'+id+'"] .grip');g&&g.focus();
+function showDay(){
+  var box=document.getElementById("cards");box.textContent="";
+  if(!cur){
+    document.getElementById("date").hidden=true;
+    box.appendChild(el("p","empty","Todavía no hay configuraciones guardadas."));
+    return;
+  }
+  var d=parse(cur),c=saved[cur];
+  document.getElementById("dWeek").textContent=d.toLocaleDateString("es-ES",{weekday:"long"});
+  document.getElementById("dDay").textContent=d.getDate();
+  document.getElementById("dMonth").textContent=cap(d.toLocaleDateString("es-ES",{month:"long"}))+" "+d.getFullYear();
+  var order=(c.order||[]).filter(function(id){return IM[id]});
+  D.images.forEach(function(i){if(order.indexOf(i.id)<0)order.push(i.id)});
+  order.forEach(function(id){
+    var im=IM[id],card=el("article","card"),frame=el("div","frame");
+    var img=el("img");img.src=im.src;img.alt=im.alt;img.width=im.w;img.height=im.h;img.loading="lazy";
+    frame.appendChild(img);
+    (c.placed||[]).filter(function(p){return p.img===id}).forEach(function(p){
+      var t=el("div","tag",p.name),col=/^#[0-9a-f]{6}$/i.test(p.c||"")?p.c:"#0b0b0b";
+      t.style.left=p.x+"%";t.style.top=p.y+"%";t.style.setProperty("--s",p.s);
+      t.style.setProperty("--c",col);t.style.setProperty("--ci",ink(col));
+      frame.appendChild(t);
     });
-    frame.append(grip);card.append(frame);box.append(card);
-  });
-}
-function gripDown(e,id){
-  const card=document.querySelector('.card[data-id="'+id+'"]');
-  let idx=state.order.indexOf(id);
-  drag(e,{
-    mk:()=>{const g=h('img',{class:'gthumb',src:byId[id].src,alt:''});return g},
-    onStart:()=>card.classList.add('lifting'),
-    onMove:(x,y)=>{
-      const others=state.order.filter(i=>i!==id);
-      document.querySelectorAll('.card.drop-before,.card.drop-after').forEach(c=>c.classList.remove('drop-before','drop-after'));
-      let at=others.length;
-      for(let k=0;k<others.length;k++){
-        const r=document.querySelector('.card[data-id="'+others[k]+'"]').getBoundingClientRect();
-        if(y<r.top+r.height/2){at=k;break}
-      }
-      idx=at;
-      if(at<others.length)document.querySelector('.card[data-id="'+others[at]+'"]').classList.add('drop-before');
-      else document.querySelector('.card[data-id="'+others[others.length-1]+'"]').classList.add('drop-after');
-    },
-    onEnd:()=>{card.classList.remove('lifting');document.querySelectorAll('.card.drop-before,.card.drop-after').forEach(c=>c.classList.remove('drop-before','drop-after'))},
-    onDrop:()=>{
-      const others=state.order.filter(i=>i!==id);others.splice(idx,0,id);
-      if(others.join()!==state.order.join()){state.order=others;change();renderImages()}
-    }
+    card.appendChild(frame);box.appendChild(card);
   });
 }
 
-/* ---------- nombres sobre las fotos ---------- */
-function setSelected(id){
-  selected=id;
-  document.querySelectorAll('.tag.sel').forEach(t=>t.classList.remove('sel'));
-  if(id){const t=document.querySelector('.tag[data-id="'+id+'"]');t&&t.classList.add('sel')}
-  renderSel();
-}
-function renderSel(){
-  const p=state.placed.find(x=>x.id===selected);
-  $('#selBox').hidden=!p;
-  if(p){
-    $('#selName').textContent=p.name;
-    document.querySelectorAll('#sw button').forEach(b=>b.classList.toggle('on',b.dataset.c===p.c));
-    const ci=$('#colorIn');if(ci)ci.value=p.c;
+function drawCal(){
+  var root=document.getElementById("cal");root.textContent="";
+  var top=el("div","top"),prev=el("button","nav","‹"),next=el("button","nav","›");
+  prev.type=next.type="button";prev.setAttribute("aria-label","Mes anterior");next.setAttribute("aria-label","Mes siguiente");
+  prev.onclick=function(){view.setMonth(view.getMonth()-1);drawCal()};
+  next.onclick=function(){view.setMonth(view.getMonth()+1);drawCal()};
+  top.appendChild(prev);top.appendChild(el("span","mo",view.toLocaleDateString("es-ES",{month:"long",year:"numeric"})));top.appendChild(next);
+  var grid=el("div","grid");
+  ["L","M","X","J","V","S","D"].forEach(function(w){grid.appendChild(el("span","wd",w))});
+  var first=(view.getDay()+6)%7,n=new Date(view.getFullYear(),view.getMonth()+1,0).getDate(),today=isoOf(new Date());
+  for(var i=0;i<first;i++)grid.appendChild(el("span","day blank"));
+  for(var d=1;d<=n;d++){
+    (function(d){
+      var key=view.getFullYear()+"-"+pad(view.getMonth()+1)+"-"+pad(d),has=!!saved[key];
+      var b=el("button","day"+(key===today?" today":"")+(has?" saved":"")+(key===cur?" sel":""),String(d));
+      b.type="button";
+      b.setAttribute("aria-label",parse(key).toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"}));
+      if(!has)b.disabled=true;
+      else b.onclick=function(){cur=key;history.replaceState(null,"","#"+key);showDay();drawCal()};
+      grid.appendChild(b);
+    })(d);
   }
+  root.appendChild(top);root.appendChild(grid);
 }
-function setColor(c){
-  const p=state.placed.find(x=>x.id===selected);if(!p)return;
-  p.c=c.toLowerCase();lastColor=p.c;
-  const el=document.querySelector('.tag[data-id="'+p.id+'"]');el&&paint(el,p.c);
-  change();renderSel();
+window.addEventListener("hashchange",function(){var h=location.hash.slice(1);if(saved[h]&&h!==cur){cur=h;view=parse(h);view.setDate(1);showDay();drawCal()}});
+if(D.generated){
+  var g=new Date(D.generated);
+  document.getElementById("upd").textContent="Datos actualizados el "+g.toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"})+".";
 }
-function tagDown(e,p,el){
-  if(e.target.closest('.x'))return;
-  if(e.target.closest('.rs')){resizeDown(e,p,el);return}
-  setSelected(p.id);
-  const fw=el.parentElement.getBoundingClientRect().width;
-  drag(e,{
-    mk:()=>ghostTag(p.name,p.s*fw/100,p.c),
-    onStart:()=>el.classList.add('lifting'),
-    onMove:hoverFrame,
-    onEnd:()=>el.classList.remove('lifting'),
-    onDrop:(x,y)=>{const f=frameAt(x,y);if(!f)return;Object.assign(p,{img:f.dataset.id},posIn(f,x,y));change();renderImages()}
-  });
-}
-function resizeDown(e,p,el){
-  e.preventDefault();e.stopPropagation();setSelected(p.id);
-  const sx=e.clientX,w0=el.offsetWidth,s0=p.s;
-  const mv=ev=>{p.s=clamp(s0*(w0+2*(ev.clientX-sx))/w0,1.2,16);el.style.setProperty('--s',p.s)};
-  const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);p.s=r2(p.s);lastSize=p.s;el.style.setProperty('--s',p.s);change()};
-  window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
-}
-function resizeBy(f){
-  const p=state.placed.find(x=>x.id===selected);if(!p)return;
-  p.s=r2(clamp(p.s*f,1.2,16));lastSize=p.s;
-  const el=document.querySelector('.tag[data-id="'+p.id+'"]');el&&el.style.setProperty('--s',p.s);change();
-}
-function removeTag(id){
-  state.placed=state.placed.filter(p=>p.id!==id);
-  if(selected===id)selected=null;
-  change();renderImages();renderSel();
-}
-$('#smaller').addEventListener('click',()=>resizeBy(0.9));
-$('#bigger').addEventListener('click',()=>resizeBy(1.1));
-$('#removeTag').addEventListener('click',()=>selected&&removeTag(selected));
-document.addEventListener('keydown',e=>{
-  if(!selected||/INPUT|TEXTAREA|BUTTON/.test(e.target.tagName))return;
-  if(e.key==='+'||e.key==='=')resizeBy(1.1);
-  else if(e.key==='-')resizeBy(0.9);
-  else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();removeTag(selected)}
-});
-
-/* ---------- lista de personal ---------- */
-function renderPool(){
-  const pool=$('#pool');pool.replaceChildren();
-  if(!state.names.length){
-    pool.append(h('p',{class:'empty'},'Importa un archivo .txt con un nombre por línea. Después arrastra cada nombre a su fotografía.'));
-  }else state.names.forEach(n=>{
-    const c=h('div',{class:'chip','data-id':n.id,title:'Arrastrar a una fotografía'},n.name);
-    c.addEventListener('pointerdown',e=>chipDown(e,n));
-    pool.append(c);
-  });
-  renderPoolState();
-}
-function renderPoolState(){
-  let placedN=0;
-  document.querySelectorAll('.chip').forEach(c=>{
-    const k=state.placed.filter(p=>p.nameId===c.dataset.id).length;
-    c.classList.toggle('done',k>0);if(k>0)placedN++;
-    const old=c.querySelector('b');if(old)old.remove();
-    if(k>1)c.append(h('b',{},'×'+k));
-  });
-  $('#poolCount').textContent=state.names.length?state.names.length+' nombres · '+placedN+' colocados':'';
-  $('#clearBtn').hidden=!state.placed.length;
-}
-function chipDown(e,n){
-  const first=document.querySelector('.frame');
-  const fw=first?first.getBoundingClientRect().width:600;
-  drag(e,{
-    mk:()=>ghostTag(n.name,lastSize*fw/100,lastColor),
-    onMove:hoverFrame,
-    onClick:()=>{const t=state.placed.find(p=>p.nameId===n.id);if(t)setSelected(t.id)},
-    onDrop:(x,y)=>{
-      const f=frameAt(x,y);if(!f)return;
-      const t={id:uid(),nameId:n.id,name:n.name,img:f.dataset.id,...posIn(f,x,y),s:lastSize,c:lastColor};
-      state.placed.push(t);
-      selected=t.id;change();renderImages();renderSel();
-    }
-  });
-}
-$('#importBtn').addEventListener('click',()=>$('#file').click());
-$('#file').addEventListener('change',async e=>{
-  const f=e.target.files[0];if(!f)return;
-  try{
-    const buf=await f.arrayBuffer();
-    let txt=new TextDecoder('utf-8').decode(buf);
-    if(txt.indexOf(String.fromCharCode(65533))>=0)txt=new TextDecoder('windows-1252').decode(buf);
-    if(txt.charCodeAt(0)===65279)txt=txt.slice(1);
-    const lines=txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-    if(!lines.length){toast('El archivo no contiene nombres',true);return}
-    const names=lines.map(name=>({id:uid(),name}));
-    state.placed.forEach(p=>{const m=names.find(n=>n.name===p.name);p.nameId=m?m.id:null});
-    state.names=names;change();renderPool();
-    toast('Importados '+names.length+' nombres');
-  }catch(err){toast('No se pudo leer el archivo',true)}
-  e.target.value='';
-});
-function twoStep(btn,armed,action){
-  const label=btn.textContent;let t=0,on=false;
-  btn.addEventListener('click',()=>{
-    if(!on){on=true;btn.textContent=armed;t=setTimeout(()=>{on=false;btn.textContent=label},4000);return}
-    clearTimeout(t);on=false;btn.textContent=label;action();
-  });
-}
-twoStep($('#clearBtn'),'Pulsa otra vez para quitar',()=>{state.placed=[];selected=null;change();renderImages();renderSel()});
-
-/* ---------- calendarios ---------- */
-const WD=['L','M','X','J','V','S','D'];
-function makeCal(root,o){
-  let view=parse(o.sel()||state.date);view.setDate(1);
-  function draw(){
-    root.replaceChildren();
-    const top=h('div',{class:'top'});
-    const prev=h('button',{class:'nav',type:'button','aria-label':'Mes anterior'},'‹');
-    const next=h('button',{class:'nav',type:'button','aria-label':'Mes siguiente'},'›');
-    prev.onclick=()=>{view.setMonth(view.getMonth()-1);draw()};
-    next.onclick=()=>{view.setMonth(view.getMonth()+1);draw()};
-    top.append(prev,h('span',{class:'mo'},view.toLocaleDateString('es-ES',{month:'long',year:'numeric'})),next);
-    const grid=h('div',{class:'grid'});
-    WD.forEach(w=>grid.append(h('span',{class:'wd'},w)));
-    const first=(view.getDay()+6)%7, n=new Date(view.getFullYear(),view.getMonth()+1,0).getDate();
-    for(let i=0;i<first;i++)grid.append(h('span',{class:'day blank'}));
-    const today=isoOf(new Date()), sel=o.sel();
-    for(let d=1;d<=n;d++){
-      const iso=view.getFullYear()+'-'+pad(view.getMonth()+1)+'-'+pad(d);
-      const isSaved=!!saved[iso];
-      const b=h('button',{class:'day'+(iso===today?' today':'')+(iso===sel?' sel':'')+(isSaved?' saved':''),type:'button','data-iso':iso,
-        'aria-label':parse(iso).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(isSaved?', guardada':'')},String(d));
-      if(o.onlyMarked&&!isSaved)b.disabled=true;
-      b.onclick=()=>o.onPick(iso);
-      grid.append(b);
-    }
-    root.append(top,grid);
-  }
-  draw();
-  return {draw,goto(iso){view=parse(iso);view.setDate(1);draw()}};
-}
-const calA=makeCal($('#calA'),{sel:()=>state.date,onPick:iso=>{state.date=iso;change();renderDate();calA.draw();calB.draw()}});
-const calB=makeCal($('#calB'),{sel:()=>saved[state.date]?state.date:'',onlyMarked:true,onPick:loadDate});
-
-function renderDate(){
-  const d=parse(state.date);
-  $('#dWeek').textContent=d.toLocaleDateString('es-ES',{weekday:'long'});
-  $('#dDay').textContent=d.getDate();
-  $('#dMonth').textContent=cap(d.toLocaleDateString('es-ES',{month:'long'}))+' '+d.getFullYear();
-}
-
-/* ---------- guardado por fecha ---------- */
-function renderSaveBar(){
-  const has=!!saved[state.date], d=dirty();
-  $('#saveBtn').textContent=(has?'Guardar cambios · ':'Guardar · ')+short(state.date);
-  const m=$('#saveMsg');
-  if(pending){m.textContent='Hay cambios sin guardar. Pulsa otra vez la fecha para cargarla y descartarlos.';m.className='state dirty'}
-  else if(has){m.textContent=d?'Cambios sin guardar en esta fecha.':'Fecha guardada, sin cambios.';m.className='state'+(d?' dirty':'')}
-  else{m.textContent=d?'Esta fecha aún no está guardada.':'Configuración vacía.';m.className='state'+(d?' dirty':'')}
-  $('#delBtn').hidden=!has;
-  calA.draw();calB.draw();
-}
-function loadDate(iso){
-  const c=saved[iso];if(!c)return;
-  if(dirty()&&pending!==iso){pending=iso;renderSaveBar();return}
-  pending=null;state=normalize({...c,date:iso});selected=null;saveDraft();
-  renderAll();calA.goto(iso);calB.goto(iso);toast('Cargada la configuración del '+short(iso));
-}
-async function save(){
-  const cfg=toConfig(),date=state.date;
-  try{
-    if(db)await db.doc('configs/'+date).set(cfg);
-    else localStorage.setItem('sl-saved',JSON.stringify({...saved,[date]:cfg}));
-    saved[date]=cfg;pending=null;renderSaveBar();toast('Guardado: '+short(date));
-  }catch(e){toast('No se pudo guardar. '+(db?'Es posible que no tengas permiso de edición.':'El navegador no deja guardar datos.'),true)}
-}
-async function removeSaved(){
-  const date=state.date;
-  try{
-    if(db)await db.doc('configs/'+date).delete();
-    else{const n={...saved};delete n[date];localStorage.setItem('sl-saved',JSON.stringify(n))}
-    delete saved[date];renderSaveBar();toast('Borrada la fecha '+short(date));
-  }catch(e){toast('No se pudo borrar',true)}
-}
-$('#saveBtn').addEventListener('click',save);
-twoStep($('#delBtn'),'Pulsa otra vez para borrar',removeSaved);
-
-function note(t){$('#storeNote').textContent=t}
-function localMode(){
-  db=null;
-  try{Object.assign(saved,JSON.parse(localStorage.getItem('sl-saved')||'{}'))}catch(e){}
-  note('Las fechas se guardan solo en este navegador.');renderSaveBar();
-}
-async function initStore(){
-  let cap=null;
-  try{cap=window.claude&&window.claude.use?await window.claude.use('db'):null}catch(e){cap=null}
-  if(!cap){localMode();return}
-  db=cap;
-  const t=setTimeout(()=>note('El almacén no responde todavía. Las fechas guardadas pueden tardar en aparecer.'),10000);
-  db.collection('configs').onSnapshot(snap=>{
-    clearTimeout(t);
-    Object.keys(saved).forEach(k=>delete saved[k]);
-    snap.docs.forEach(d=>{const v=d.data();if(v)saved[d.id]=v});
-    note('');renderSaveBar();
-  },err=>{clearTimeout(t);localMode()});
-}
-
-/* ---------- exportar zip para GitHub ---------- */
-const README_TXT=[
- 'PÁGINA INFORMATIVA · SERVICIOS DE LIMPIEZA',
- '',
- 'Contenido del zip:',
- '  index.html  página de solo lectura con el calendario y todas las fechas guardadas',
- '  img/        fotografías que usa la página',
- '',
- 'Para actualizar la web en GitHub:',
- '  1. Descomprime el zip.',
- '  2. En el repositorio, sube index.html y la carpeta img/ (sustituye los archivos existentes).',
- '  3. Haz commit. Si usas GitHub Pages, la web se actualiza sola en unos minutos.',
- '',
- 'Si el repositorio es público, los nombres del personal serán visibles para cualquiera.',
- ''
-].join('\r\n');
-let dlCap=null;
-(async()=>{
-  try{dlCap=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){dlCap=null}
-  $('#exportPanel').hidden=!dlCap;
-})();
-async function exportZip(){
-  const btn=$('#exportBtn');
-  const keys=Object.keys(saved).sort();
-  if(!keys.length){toast('Todavía no hay fechas guardadas para exportar',true);return}
-  if(!window.JSZip){toast('No se pudo cargar el generador de zip',true);return}
-  const label=btn.textContent;btn.disabled=true;btn.textContent='Preparando zip…';
-  try{
-    const tpl=await fetch('export-template.txt').then(r=>{if(!r.ok)throw new Error('plantilla');return r.text()});
-    const configs={};
-    keys.forEach(d=>{
-      const c=normalize({...saved[d],date:d});
-      configs[d]={order:c.order,placed:c.placed.map(p=>({name:p.name,img:p.img,x:p.x,y:p.y,s:p.s,c:p.c}))};
-    });
-    const data={generated:new Date().toISOString(),images:IMAGES.map(i=>({id:i.id,src:i.src,w:i.w,h:i.h,alt:i.alt})),configs};
-    const json=JSON.stringify(data).replace(/</g,'\\u003c');
-    const zip=new window.JSZip();
-    zip.file('index.html',tpl.replace('__DATA__',()=>json));
-    zip.file('LEEME.txt',README_TXT);
-    await Promise.all(IMAGES.map(i=>fetch(i.src).then(r=>{if(!r.ok)throw new Error(i.id);return r.blob()}).then(b=>zip.file(i.src,b))));
-    const blob=await zip.generateAsync({type:'blob',compression:'STORE'});
-    await dlCap.save({filename:'servicios-limpieza-github.zip',data:blob});
-    toast('Zip listo con '+keys.length+(keys.length===1?' fecha':' fechas')+(dirty()?'. Los cambios sin guardar no se incluyen.':''));
-  }catch(e){
-    if(e&&e.code==='declined')toast('Descarga cancelada');
-    else toast('No se pudo crear el zip'+(e&&e.message?': '+e.message:''),true);
-  }
-  btn.disabled=false;btn.textContent=label;
-}
-$('#exportBtn').addEventListener('click',exportZip);
-
-let toastT=0;
-function toast(msg,err){
-  const t=$('#toast');t.textContent=msg;t.className='show'+(err?' err':'');
-  clearTimeout(toastT);toastT=setTimeout(()=>{t.className=''},3200);
-}
-function renderAll(){renderDate();renderImages();renderPool();renderSel();renderSaveBar()}
-const COLORS=['#0b0b0b','#ffffff','#1c6b3a','#c9e11f','#ffd600','#ef6c00','#c62828','#1565c0'];
-{
-  const sw=$('#sw');
-  COLORS.forEach(c=>{const b=h('button',{type:'button','data-c':c,title:c,'aria-label':'Color '+c});b.style.background=c;b.addEventListener('click',()=>setColor(c));sw.append(b)});
-  const ci=h('input',{type:'color',id:'colorIn','aria-label':'Otro color',value:DEFAULT_COLOR});
-  ci.addEventListener('input',()=>setColor(ci.value));sw.append(ci);
-  $('#allColor').addEventListener('click',()=>{
-    const p=state.placed.find(x=>x.id===selected);if(!p)return;
-    state.placed.forEach(q=>{q.c=p.c});change();renderImages();renderSel();toast('Color aplicado a todos los nombres');
-  });
-}
-renderAll();
-initStore();
+showDay();drawCal();
 })();
 </script>
-
-</body></html>
+</body>
+</html>
